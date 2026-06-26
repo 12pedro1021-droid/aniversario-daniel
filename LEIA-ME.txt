@@ -1,0 +1,8 @@
+COMO ABRIR A APRESENTACAO
+
+1. Extraia a pasta do arquivo ZIP.
+2. Abra o arquivo slideshow-fotos.html.
+3. Clique em "Iniciar apresentacao".
+
+Observacao:
+Nao apague a pasta assets nem os arquivos de audio, porque eles fazem parte da apresentacao.

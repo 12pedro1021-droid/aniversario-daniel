@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daniel do Salão - Slide animado</title>
+  <style>
+    :root {
+      --black: #0b0907;
+      --deep: #17110c;
+      --wood: #5f3a20;
+      --gold: #d9a441;
+      --gold-soft: #ffe7a3;
+      --paper: #f7efe4;
+      --ink: #fffaf0;
+      --muted: rgba(255, 250, 240, 0.72);
+      --red: #a1272f;
+      --teal: #25766b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background: var(--black);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(9, 7, 5, 0.92), rgba(31, 20, 12, 0.78) 48%, rgba(9, 7, 5, 0.94)),
+        repeating-linear-gradient(90deg, rgba(120, 74, 36, 0.18) 0 2px, transparent 2px 74px),
+        linear-gradient(115deg, rgba(92, 55, 24, 0.42), transparent 28%, rgba(23, 13, 7, 0.52) 72%),
+        radial-gradient(circle at 22% 18%, rgba(217, 164, 65, 0.28), transparent 24%),
+        radial-gradient(circle at 82% 76%, rgba(112, 40, 18, 0.24), transparent 28%),
+        linear-gradient(135deg, #120c07, #3a2413 52%, #080604);
+      z-index: -4;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 232, 177, 0.035) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 11px);
+      background-size: 180px 180px;
+      opacity: 0.38;
+      z-index: -3;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      min-height: 620px;
+      padding: clamp(24px, 3vw, 46px);
+      isolation: isolate;
+    }
+
+    .grain,
+    .light,
+    .particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .grain {
+      background-image:
+        repeating-radial-gradient(circle at 17% 23%, rgba(255,255,255,0.06) 0 1px, transparent 1px 5px),
+        repeating-radial-gradient(circle at 77% 72%, rgba(0,0,0,0.2) 0 1px, transparent 1px 7px);
+      mix-blend-mode: overlay;
+      opacity: 0.16;
+      z-index: 5;
+    }
+
+    .light::before {
+      content: "";
+      position: absolute;
+      left: -18vw;
+      top: -30vh;
+      width: 58vw;
+      height: 150vh;
+      background: linear-gradient(100deg, transparent, rgba(255, 213, 128, 0.18), transparent);
+      transform: rotate(12deg);
+      animation: lightSweep 15s ease-in-out infinite;
+    }
+
+    .light::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 14% 82%, rgba(255, 190, 91, 0.12), transparent 22%),
+        radial-gradient(circle at 86% 20%, rgba(255, 231, 163, 0.11), transparent 20%);
+      animation: warmBreath 7s ease-in-out infinite alternate;
+    }
+
+    @keyframes warmBreath {
+      from { opacity: 0.45; transform: scale(1); }
+      to { opacity: 0.9; transform: scale(1.03); }
+    }
+
+    @keyframes lightSweep {
+      0%, 100% { transform: translateX(-8vw) rotate(12deg); opacity: 0.32; }
+      48% { transform: translateX(78vw) rotate(12deg); opacity: 0.72; }
+    }
+
+    .particle {
+      position: absolute;
+      left: var(--x);
+      top: 108%;
+      width: var(--s);
+      height: var(--s);
+      border-radius: 50%;
+      background: rgba(255, 215, 132, 0.9);
+      box-shadow: 0 0 18px rgba(255, 198, 89, 0.74);
+      animation: rise var(--d) linear infinite;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes rise {
+      0% { transform: translateY(0) scale(0.65); opacity: 0; }
+      12% { opacity: 0.95; }
+      100% { transform: translateY(-128vh) scale(1.2); opacity: 0; }
+    }
+
+    .layout {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(380px, 0.92fr) minmax(560px, 1.08fr);
+      gap: clamp(24px, 3vw, 54px);
+      width: min(1680px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .story {
+      position: relative;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      padding-left: clamp(8px, 1vw, 18px);
+    }
+
+    .kicker {
+      margin: 0;
+      color: var(--gold-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: clamp(12px, 1vw, 15px);
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 720px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(44px, 4.4vw, 76px);
+      line-height: 0.92;
+      font-weight: 700;
+      text-shadow: 0 18px 42px rgba(0, 0, 0, 0.48);
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 620px;
+      color: var(--muted);
+      font-size: clamp(16px, 1.35vw, 22px);
+      line-height: 1.36;
+    }
+
+    .caption-box {
+      position: relative;
+      width: min(620px, 100%);
+      padding: 18px 22px;
+      border-left: 3px solid var(--gold);
+      background: linear-gradient(90deg, rgba(255, 236, 181, 0.12), rgba(255, 236, 181, 0.02));
+      box-shadow: inset 0 0 0 1px rgba(255, 231, 163, 0.09);
+    }
+
+    .caption-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--gold-soft);
+      font-size: clamp(22px, 2vw, 32px);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.05;
+    }
+
+    .caption-box span {
+      color: rgba(255, 250, 240, 0.76);
+      font-size: clamp(15px, 1.25vw, 20px);
+      line-height: 1.42;
+    }
+
+    .voice-strip {
+      position: relative;
+      width: min(620px, 100%);
+      height: 210px;
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 231, 163, 0.2);
+      border-bottom: 1px solid rgba(255, 231, 163, 0.12);
+      mask-image: linear-gradient(transparent, black 18%, black 82%, transparent);
+      z-index: 3;
+    }
+
+    .voice-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -18px;
+      color: rgba(255, 250, 240, 0.5);
+      font-size: clamp(22px, 2vw, 34px);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.18;
+      opacity: 0;
+      transform: translateY(-18px);
+      transition: transform 1.7s ease, opacity 1.7s ease, color 1.7s ease;
+      text-shadow: 0 14px 30px rgba(0, 0, 0, 0.42);
+    }
+
+    .voice-line.is-now {
+      color: var(--gold-soft);
+      opacity: 1;
+      transform: translateY(54px);
+    }
+
+    .voice-line.is-past {
+      color: rgba(255, 250, 240, 0.42);
+      opacity: 0.58;
+      transform: translateY(142px);
+    }
+
+    .voice-line.is-gone {
+      opacity: 0;
+      transform: translateY(152px);
+    }
+
+    .audio-control {
+      position: relative;
+      z-index: 7;
+      width: fit-content;
+      min-width: 210px;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid rgba(255, 231, 163, 0.28);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(217, 164, 65, 0.26), rgba(8, 7, 6, 0.56));
+      color: var(--gold-soft);
+      font: 800 12px/1 "Segoe UI", Arial, Helvetica, sans-serif;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
+    }
+
+    .audio-control.is-speaking {
+      background: linear-gradient(135deg, rgba(37, 118, 107, 0.42), rgba(8, 7, 6, 0.62));
+    }
+
+    .story > .kicker,
+    .story > h1,
+    .story > .subtitle,
+    .story > .caption-box {
+      position: relative;
+      z-index: 3;
+    }
+
+    .puppet-wrap {
+      position: absolute;
+      display: none;
+      right: clamp(-42px, -2vw, -8px);
+      bottom: clamp(-6px, 1vh, 14px);
+      width: clamp(104px, 10vw, 174px);
+      height: clamp(168px, 17vw, 282px);
+      transform-origin: 50% 100%;
+      animation: characterEnter 1.2s ease both, characterBob 3.4s ease-in-out 1.2s infinite;
+      filter: drop-shadow(0 28px 36px rgba(0, 0, 0, 0.48));
+      z-index: 2;
+    }
+
+    @keyframes characterEnter {
+      from { transform: translateY(60px) scale(0.88); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    @keyframes characterBob {
+      0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+      50% { transform: translateY(-10px) rotate(0.7deg); }
+    }
+
+    .puppet {
+      position: absolute;
+      inset: 0;
+    }
+
+    .head {
+      position: absolute;
+      left: 50%;
+      top: 5%;
+      width: 58%;
+      aspect-ratio: 0.86;
+      transform: translateX(-50%);
+      border-radius: 46% 46% 44% 44%;
+      background:
+        radial-gradient(circle at 28% 34%, rgba(255,255,255,0.35), transparent 9%),
+        linear-gradient(150deg, #d99061, #b86643 62%, #8b462f);
+      box-shadow: inset 0 -10px 18px rgba(80, 32, 19, 0.28);
+    }
+
+    .hair {
+      position: absolute;
+      left: 17%;
+      top: -2%;
+      width: 66%;
+      height: 30%;
+      border-radius: 52% 48% 36% 34%;
+      background: linear-gradient(145deg, #241814, #080706);
+      transform: rotate(-2deg);
+    }
+
+    .hair::after {
+      content: "";
+      position: absolute;
+      right: 3%;
+      top: 32%;
+      width: 28%;
+      height: 38%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      filter: blur(4px);
+    }
+
+    .ear {
+      position: absolute;
+      top: 42%;
+      width: 13%;
+      height: 20%;
+      border-radius: 50%;
+      background: #a8583b;
+      z-index: -1;
+    }
+
+    .ear.left { left: -6%; }
+    .ear.right { right: -6%; }
+
+    .eye {
+      position: absolute;
+      top: 44%;
+      width: 9%;
+      height: 6%;
+      border-radius: 50%;
+      background: #1d1110;
+      animation: blink 5.2s infinite;
+    }
+
+    .eye.left { left: 31%; }
+    .eye.right { right: 31%; }
+
+    @keyframes blink {
+      0%, 46%, 50%, 100% { transform: scaleY(1); }
+      48% { transform: scaleY(0.12); }
+    }
+
+    .brow {
+      position: absolute;
+      top: 36%;
+      width: 18%;
+      height: 5%;
+      border-radius: 999px;
+      background: #19100d;
+    }
+
+    .brow.left { left: 25%; transform: rotate(-7deg); }
+    .brow.right { right: 25%; transform: rotate(7deg); }
+
+    .nose {
+      position: absolute;
+      left: 47%;
+      top: 48%;
+      width: 9%;
+      height: 18%;
+      border-radius: 50%;
+      border-right: 3px solid rgba(80, 32, 19, 0.34);
+      transform: rotate(5deg);
+    }
+
+    .beard {
+      position: absolute;
+      left: 18%;
+      bottom: 4%;
+      width: 64%;
+      height: 43%;
+      border-radius: 22% 22% 48% 48%;
+      background:
+        radial-gradient(circle at 34% 24%, rgba(255,255,255,0.08), transparent 16%),
+        linear-gradient(155deg, #21120f, #080706);
+    }
+
+    .mouth {
+      position: absolute;
+      left: 39%;
+      top: 66%;
+      width: 22%;
+      height: 9%;
+      border-bottom: 3px solid #d8a18a;
+      border-radius: 0 0 999px 999px;
+      z-index: 2;
+    }
+
+    .neck {
+      position: absolute;
+      left: 43%;
+      top: 37%;
+      width: 14%;
+      height: 14%;
+      background: #a8583b;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .body {
+      position: absolute;
+      left: 21%;
+      top: 48%;
+      width: 58%;
+      height: 46%;
+      border-radius: 34% 34% 20% 20%;
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,0.32), transparent 18%),
+        linear-gradient(145deg, #fff5b5, #eadc83 54%, #c9ba60);
+      box-shadow: inset 0 -16px 20px rgba(86, 73, 23, 0.22);
+    }
+
+    .body::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 22%;
+      height: 26%;
+      border-radius: 0 0 999px 999px;
+      background: #a8583b;
+      transform: translateX(-50%);
+    }
+
+    .arm {
+      position: absolute;
+      top: 54%;
+      width: 18%;
+      height: 34%;
+      border-radius: 999px;
+      background: linear-gradient(#d99061, #a8583b);
+      transform-origin: 50% 8%;
+    }
+
+    .arm.left {
+      left: 12%;
+      transform: rotate(17deg);
+    }
+
+    .arm.right {
+      right: 11%;
+      animation: wave 1.35s ease-in-out infinite;
+    }
+
+    @keyframes wave {
+      0%, 100% { transform: rotate(-36deg); }
+      50% { transform: rotate(-74deg); }
+    }
+
+    .puppet-wrap::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -7%;
+      width: 20%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(255, 231, 163, 0.84);
+      box-shadow:
+        -38px 22px 0 -6px rgba(255, 231, 163, 0.44),
+        34px 18px 0 -7px rgba(255, 231, 163, 0.38),
+        0 0 28px rgba(255, 210, 110, 0.62);
+      animation: puppetSpark 2.2s ease-in-out infinite;
+    }
+
+    @keyframes puppetSpark {
+      0%, 100% { transform: translate(-50%, 0) scale(0.72); opacity: 0.35; }
+      50% { transform: translate(-50%, -10px) scale(1); opacity: 0.9; }
+    }
+
+    .hand {
+      position: absolute;
+      bottom: -7%;
+      left: 50%;
+      width: 130%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #d99061;
+      transform: translateX(-50%);
+    }
+
+    .gallery {
+      position: relative;
+      height: min(76vh, 720px);
+      min-height: 520px;
+      perspective: 1200px;
+      display: grid;
+      place-items: center;
+    }
+
+    .photo-scene {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .photo-card {
+      position: absolute;
+      width: min(var(--w), 82%);
+      aspect-ratio: var(--ratio);
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow:
+        0 36px 90px rgba(0, 0, 0, 0.52);
+      opacity: 0;
+      transform: translate3d(0, 34px, 0) rotate(0deg) scale(0.94);
+      transition: opacity 1.2s ease, filter 1.2s ease, transform 1.2s ease;
+      filter: blur(14px);
+      overflow: visible;
+    }
+
+    .photo-card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: transparent;
+      border-radius: 0;
+      filter: contrast(1.06) saturate(1.04);
+    }
+
+    .photo-card figcaption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      color: var(--gold-soft);
+      font-weight: 800;
+      font-size: clamp(13px, 1vw, 17px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      text-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    }
+
+    .photo-card.is-active {
+      opacity: 1;
+      filter: blur(0);
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+      z-index: 2;
+    }
+
+    .photo-card.is-active img {
+      animation: none;
+    }
+
+    @keyframes photoDrift {
+      from { transform: scale(1.01) translate3d(-1.5%, -1%, 0); }
+      to { transform: scale(1.075) translate3d(1.5%, 1%, 0); }
+    }
+
+    .memory-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      display: none;
+      justify-content: center;
+      gap: 12px;
+      z-index: 3;
+    }
+
+    .memory-title span {
+      display: inline-flex;
+      min-width: 180px;
+      justify-content: center;
+      padding: 11px 18px;
+      border: 1px solid rgba(255, 231, 163, 0.26);
+      background: rgba(8, 7, 6, 0.58);
+      color: var(--gold-soft);
+      backdrop-filter: blur(12px);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .timeline {
+      position: fixed;
+      left: clamp(24px, 3vw, 46px);
+      right: clamp(24px, 3vw, 46px);
+      bottom: clamp(14px, 2vw, 28px);
+      height: 3px;
+      background: rgba(255, 231, 163, 0.18);
+      z-index: 20;
+      --progress: 0;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      transform-origin: left;
+      transform: scaleX(var(--progress, 0));
+    }
+
+    .finale {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 8vw;
+      background:
+        radial-gradient(circle at center, rgba(255, 223, 134, 0.22), transparent 36%),
+        rgba(7, 5, 4, 0.86);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      transition: opacity 1s ease;
+    }
+
+    .finale.is-visible {
+      opacity: 1;
+    }
+
+    .finale h2 {
+      margin: 0;
+      color: #fff7df;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(64px, 12vw, 178px);
+      line-height: 0.86;
+      text-align: center;
+      text-shadow:
+        0 0 28px rgba(255, 216, 127, 0.62),
+        0 28px 80px rgba(0, 0, 0, 0.7);
+      animation: finalePop 2.4s ease-in-out infinite;
+    }
+
+    .finale span {
+      display: block;
+      margin-top: 20px;
+      color: var(--gold-soft);
+      font: 800 clamp(16px, 2vw, 28px)/1 "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    @keyframes finalePop {
+      0%, 100% { transform: scale(1) rotate(-0.5deg); }
+      50% { transform: scale(1.035) rotate(0.5deg); }
+    }
+
+    @media (max-width: 980px) {
+      body { overflow: auto; }
+
+      .stage {
+        min-height: 100vh;
+        height: auto;
+        overflow: hidden;
+        padding: 22px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        align-content: start;
+        gap: 18px;
+      }
+
+      .story {
+        min-height: auto;
+        padding-top: 0;
+        gap: 14px;
+      }
+
+      h1 {
+        font-size: clamp(38px, 13vw, 54px);
+        line-height: 0.95;
+      }
+
+      .subtitle {
+        font-size: 15px;
+      }
+
+      .caption-box {
+        padding: 14px 16px;
+      }
+
+      .caption-box strong {
+        font-size: 24px;
+      }
+
+      .gallery {
+        order: -1;
+        height: 44vh;
+        min-height: 310px;
+        margin-top: 12px;
+      }
+
+      .puppet-wrap {
+        display: none;
+      }
+
+      .photo-card {
+        width: min(var(--w), 92%);
+        max-height: 100%;
+      }
+
+      .voice-strip {
+        height: 178px;
+      }
+
+      .voice-line {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="light" aria-hidden="true"></div>
+    <div class="particles" id="particles" aria-hidden="true"></div>
+
+    <section class="layout" aria-label="Slide animado das memórias de Daniel">
+      <div class="story">
+        <p class="kicker">50 anos de Daniel do Salão</p>
+        <h1>Memórias que ganham vida</h1>
+        <p class="subtitle">Entre retratos antigos e encontros de família, a vida de Daniel do Salão aparece em camadas de carinho, fé e gratidão.</p>
+
+        <div class="caption-box" aria-live="polite">
+          <strong id="captionTitle">Daniel do Salão, o homenageado</strong>
+          <span id="captionText">O rosto que conduz esta história de trabalho, família, amizade e fé.</span>
+        </div>
+
+        <div class="voice-strip" aria-live="polite" id="voiceStrip"></div>
+        <button class="audio-control" id="audioControl" type="button">Iniciar apresentação</button>
+
+        <div class="puppet-wrap" aria-hidden="true">
+          <div class="puppet">
+            <div class="neck"></div>
+            <div class="body"></div>
+            <div class="arm left"><span class="hand"></span></div>
+            <div class="arm right"><span class="hand"></span></div>
+            <div class="head">
+              <div class="hair"></div>
+              <div class="ear left"></div>
+              <div class="ear right"></div>
+              <div class="brow left"></div>
+              <div class="brow right"></div>
+              <div class="eye left"></div>
+              <div class="eye right"></div>
+              <div class="nose"></div>
+              <div class="beard"></div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery">
+        <div class="photo-scene" id="photoScene"></div>
+        <div class="memory-title"><span>Família</span><span>Fé</span><span>Legado</span></div>
+      </div>
+    </section>
+
+    <div class="timeline" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="finale" id="finale" aria-hidden="true">
+      <h2>Feliz<br>aniversário<span>Daniel do Salão</span></h2>
+    </div>
+  </main>
+  <audio id="narrationAudio" src="narracao.mp3" preload="metadata"></audio>
+  <audio id="musicOne" src="boate-azul-instrumental.mp3" preload="metadata" loop></audio>
+  <audio id="musicTwo" src="baroes-pisadinha-karaoke.mp3" preload="metadata" loop></audio>
+
+  <script>
+    const memories = [
+      {
+        src: "assets/fotos-limpas/00-daniel.jpg",
+        title: "Daniel do Salão, o homenageado",
+        text: "O rosto que conduz esta história de trabalho, família, amizade e fé.",
+        lines: [
+          "Daniel, hoje a sua história ganha movimento.",
+          "Cada imagem guarda um pedaço do caminho.",
+          "Trabalho, família, amizade e fé caminham juntos."
+        ],
+        ratio: "655 / 900",
+        width: "420px",
+        tx: "-3vw",
+        ty: "-1vh",
+        tz: "90px",
+        rot: "-2deg"
+      },
+      {
+        src: "assets/fotos-limpas/01-maria-eduarda.jpg",
+        title: "Maria Eduarda",
+        text: "Uma lembrança de infância preservada com carinho dentro da história da família.",
+        lines: [
+          "Maria Eduarda aparece como memória de carinho.",
+          "A infância traz a delicadeza das primeiras lembranças.",
+          "O tempo passa, mas o afeto permanece."
+        ],
+        ratio: "265 / 450",
+        width: "360px",
+        tx: "5vw",
+        ty: "0vh",
+        tz: "70px",
+        rot: "3deg"
+      },
+      {
+        src: "assets/fotos-limpas/02-pai-dele.jpg",
+        title: "O pai de Daniel",
+        text: "A memória das origens e dos caminhos que vieram antes.",
+        lines: [
+          "Aqui está a lembrança do pai dele.",
+          "As origens explicam muito do homem que Daniel se tornou.",
+          "Antes de todo legado, existe uma raiz."
+        ],
+        ratio: "258 / 430",
+        width: "390px",
+        tx: "-1vw",
+        ty: "1vh",
+        tz: "80px",
+        rot: "-3deg"
+      },
+      {
+        src: "assets/fotos-limpas/10-daniel-com-pai-ia.png",
+        title: "Daniel e o pai",
+        text: "Uma imagem simbólica reunindo Daniel e seu pai em uma lembrança de carinho.",
+        lines: [
+          "Uma homenagem visual às origens.",
+          "Pai e filho reunidos pela memória.",
+          "Um gesto de amor para esta história."
+        ],
+        ratio: "1 / 1",
+        width: "620px",
+        tx: "0vw",
+        ty: "0vh",
+        tz: "80px",
+        rot: "0deg"
+      },
+      {
+        src: "assets/fotos-limpas/03-casamento-noemi.jpg",
+        title: "Casamento com Noemi",
+        text: "O início de uma aliança de amor, família e construção de vida.",
+        lines: [
+          "Com Noemi, Daniel iniciou uma nova etapa.",
+          "Uma aliança de amor, compromisso e família.",
+          "Daquele sim nasceram caminhos e sonhos."
+        ],
+        ratio: "265 / 448",
+        width: "360px",
+        tx: "4vw",
+        ty: "-1vh",
+        tz: "70px",
+        rot: "2deg"
+      },
+      {
+        src: "assets/fotos-limpas/04-familia-evento.jpg",
+        title: "Família em celebração",
+        text: "Pessoas reunidas em torno de afeto, presença e gratidão.",
+        lines: [
+          "A família se reúne para celebrar.",
+          "Cada sorriso confirma a força dos laços.",
+          "Estar perto também é uma forma de agradecer."
+        ],
+        ratio: "377 / 447",
+        width: "480px",
+        tx: "-4vw",
+        ty: "0vh",
+        tz: "90px",
+        rot: "-2deg"
+      },
+      {
+        src: "assets/fotos-limpas/05-neto.jpg",
+        title: "Neto",
+        text: "A continuidade da história: alegria, descendência e futuro.",
+        lines: [
+          "O neto representa continuidade.",
+          "E a alegria de ver a vida florescer de novo.",
+          "O futuro tambem carrega o nome do amor."
+        ],
+        ratio: "407 / 418",
+        width: "510px",
+        tx: "3vw",
+        ty: "-1vh",
+        tz: "80px",
+        rot: "2deg"
+      },
+      {
+        src: "assets/fotos-limpas/06-pedro-ivo-siqueira.jpg",
+        title: "Pedro Ivo e Siqueira",
+        text: "Amizades e encontros que também fazem parte da caminhada.",
+        lines: [
+          "Pedro Ivo e Siqueira entram nesta memória.",
+          "Porque amizade também faz parte da caminhada.",
+          "Há encontros que ficam para sempre."
+        ],
+        ratio: "354 / 418",
+        width: "430px",
+        tx: "-2vw",
+        ty: "1vh",
+        tz: "80px",
+        rot: "-2deg"
+      },
+      {
+        src: "assets/fotos-limpas/07-danielle-violao.jpg",
+        title: "Lembrança com violão",
+        text: "Uma imagem de juventude, música e simplicidade guardada no coração.",
+        lines: [
+          "Uma lembrança com violão.",
+          "Música, juventude e simplicidade no mesmo retrato.",
+          "Algumas cenas parecem pequenas, mas dizem muito."
+        ],
+        ratio: "782 / 445",
+        width: "680px",
+        tx: "0vw",
+        ty: "-1vh",
+        tz: "110px",
+        rot: "1deg"
+      },
+      {
+        src: "assets/fotos-limpas/08-familia-reunida.jpg",
+        title: "Família reunida",
+        text: "O valor da presença: abraços, encontros e memória compartilhada.",
+        lines: [
+          "A família reunida mostra o valor da presença.",
+          "Abraços e encontros contam a história sem pressa.",
+          "O amor se revela quando todos cabem na mesma lembrança."
+        ],
+        ratio: "754 / 445",
+        width: "690px",
+        tx: "-2vw",
+        ty: "0vh",
+        tz: "100px",
+        rot: "-1deg"
+      },
+      {
+        src: "assets/fotos-limpas/09-familia-toda.jpg",
+        title: "Família toda",
+        text: "Um retrato amplo do legado construído ao longo dos anos.",
+        lines: [
+          "E aqui, a família toda.",
+          "Um retrato amplo do legado construído por Daniel.",
+          "Cinquenta anos vividos com história, fé e gratidão."
+        ],
+        ratio: "707 / 419",
+        width: "720px",
+        tx: "1vw",
+        ty: "-1vh",
+        tz: "110px",
+        rot: "1deg"
+      }
+    ];
+
+    const fullNarration = [
+      "Hoje celebramos muito mais do que um aniversário.",
+      "Celebramos 50 anos de uma história construída com trabalho, honestidade, fé, amizade e amor à família.",
+      "Esta é a história de Daniel do Salão.",
+      "Em 26 de junho de 1976, nasceu em Formosa, Goiás, Daniel Pereira da Silva, conhecido com carinho como Daniel do Salão.",
+      "Filho de Henrique Pereira da Silva e Juliana de Souza Silva, cresceu cercado pelos valores da simplicidade, do respeito e do trabalho.",
+      "Ainda muito jovem, enfrentou uma grande perda.",
+      "Em 25 de outubro de 1985, perdeu seu pai.",
+      "A partir daquele momento, sua mãe, Dona Juliana, tornou-se exemplo de força e determinação.",
+      "Sozinha, criou seus seis filhos com dignidade, sustentando a família através do seu trabalho.",
+      "Foi com ela que Daniel aprendeu que a honestidade, a humildade e a fé sempre seriam o caminho certo.",
+      "A união familiar sempre foi uma marca dessa história.",
+      "Os domingos na casa da Vovó Júlia ficaram eternizados na memória de todos.",
+      "O tradicional frango com açúcar e o refrigerante Baré reuniam filhos, netos e, mais tarde, bisnetos.",
+      "Momentos simples, mas repletos de amor, alegria e união.",
+      "Foi nesse ambiente que Daniel construiu os valores que levaria para toda a vida.",
+      "Em 1992, Daniel iniciou sua trajetória profissional no Supermercado Caçula.",
+      "Ali surgiram amizades que atravessariam décadas.",
+      "Pedro Ivo, Siqueira e Pedrão tornaram-se companheiros de vida.",
+      "Também trabalhou ao lado de Luciano e Karine, pessoas que marcaram profundamente sua trajetória.",
+      "O carinho era tão grande que, quando nasceu sua primeira filha, Daniel escolheu o nome Karine em homenagem a ela.",
+      "Pouco tempo depois, Daniel iniciou uma nova fase ao lado de seu padrasto, José Neres, na tradicional Barbearia Volga.",
+      "Foi ali que encontrou sua verdadeira vocação.",
+      "Mais do que cortar cabelos, descobriu sua missão de cuidar das pessoas.",
+      "Em 1997, após o falecimento de José Neres, Daniel decidiu honrar seu legado.",
+      "A Barbearia Volga passou a se chamar Barbearia Estrela.",
+      "Nascia então o nome que se tornaria conhecido por toda Formosa: Daniel do Salão.",
+      "Ao longo dos anos, clientes se tornaram amigos.",
+      "E amigos se tornaram parte da família.",
+      "Em 30 de abril de 1994, Daniel e Noemi uniram suas vidas em matrimônio.",
+      "Uma história construída sobre amor, respeito, parceria e cumplicidade.",
+      "Em 1995 nasceu Karine Daniela.",
+      "Depois veio Danilo Daniel.",
+      "E, alguns anos mais tarde, Deus presenteou a família com a chegada de Danielhe.",
+      "Juntos, construíram um lar baseado nos mesmos valores ensinados por Dona Juliana.",
+      "Trabalho, honestidade, fé e amor ao próximo.",
+      "Os filhos cresceram dentro da Barbearia Estrela.",
+      "Aprenderam desde cedo o valor do trabalho e da dedicação.",
+      "Karine caminhou ao lado do pai em diversos projetos.",
+      "Danilo seguiu os passos do pai na profissão de barbeiro.",
+      "Danielhe continua crescendo cercada pelos mesmos princípios que marcaram essa família.",
+      "Hoje, o legado permanece vivo através das duas barbearias da família.",
+      "Em 2008, Daniel iniciou sua caminhada na vida pública.",
+      "Movido pelo desejo de servir à população de Formosa, dedicou-se a trabalhar pelo desenvolvimento da cidade.",
+      "Em 2012, colocou seu nome à disposição da população como candidato a vereador.",
+      "Desde então, segue construindo uma trajetória baseada no compromisso com as pessoas.",
+      "Em março de 2019, nasceu Arthur.",
+      "Seu primeiro neto.",
+      "Sua chegada trouxe esperança, alegria e renovação para toda a família.",
+      "Hoje, Arthur é muito mais do que um neto.",
+      "É companheiro, amigo e parceiro inseparável.",
+      "Entre brincadeiras, conversas e os famosos ovos mexidos preparados juntos, os dois construíram uma relação única e especial.",
+      "Nenhuma história é construída sozinha.",
+      "Daniel agradece à sua mãe Juliana.",
+      "À sua esposa Noemi.",
+      "Aos seus filhos Karine, Danilo e Danielhe.",
+      "Ao neto Arthur.",
+      "Aos irmãos, familiares e amigos.",
+      "A todos que fizeram parte dessa caminhada.",
+      "E acima de tudo, agradece a Deus.",
+      "Por cada vitória. Por cada aprendizado. Por cada porta aberta. Por cada pessoa colocada em seu caminho.",
+      "Como está escrito em Salmos 37:5:",
+      "Entrega o teu caminho ao Senhor; confia nele, e Ele tudo fará.",
+      "Hoje celebramos uma vida de trabalho. Uma vida de fé. Uma vida de amor. Uma vida de legado.",
+      "Parabéns, Daniel do Salão. Que Deus continue abençoando seus passos, sua família e sua história. Feliz aniversário de 50 anos."
+    ];
+
+    const scene = document.querySelector("#photoScene");
+    const captionTitle = document.querySelector("#captionTitle");
+    const captionText = document.querySelector("#captionText");
+    const voiceStrip = document.querySelector("#voiceStrip");
+    const audioControl = document.querySelector("#audioControl");
+    const narrationAudio = document.querySelector("#narrationAudio");
+    const musicOne = document.querySelector("#musicOne");
+    const musicTwo = document.querySelector("#musicTwo");
+    const fallbackDuration = 351;
+
+    memories.forEach((memory, index) => {
+      const card = document.createElement("figure");
+      card.className = "photo-card";
+      card.style.setProperty("--ratio", memory.ratio);
+      card.style.setProperty("--w", memory.width);
+      card.style.setProperty("--tx", memory.tx);
+      card.style.setProperty("--ty", memory.ty);
+      card.style.setProperty("--tz", memory.tz);
+      card.style.setProperty("--rot", memory.rot);
+      card.innerHTML = `<img src="${memory.src}" alt="${memory.title}"><figcaption>${memory.title}</figcaption>`;
+      scene.appendChild(card);
+    });
+
+    const cards = [...document.querySelectorAll(".photo-card")];
+    let activeIndex = -1;
+    let lineIndex = -1;
+    let isPlaying = false;
+    let startedAt = 0;
+    let pausedAt = 0;
+    let activeMusic = null;
+    const textSyncSpeed = 1;
+    const textSyncLead = 0;
+    musicOne.volume = 0.22;
+    musicTwo.volume = 0.2;
+
+    fullNarration.forEach((line, lineIndex) => {
+      const lineEl = document.createElement("div");
+      lineEl.className = "voice-line";
+      lineEl.dataset.line = String(lineIndex);
+      lineEl.textContent = line;
+      voiceStrip.appendChild(lineEl);
+    });
+
+    const voiceLines = [...document.querySelectorAll(".voice-line")];
+    const lineCount = fullNarration.length;
+    const photoCues = [
+      { from: 0, to: 2, memory: 0 },
+      { from: 3, to: 3, memory: 1 },
+      { from: 4, to: 6, memory: 2 },
+      { from: 7, to: 9, memory: 3 },
+      { from: 10, to: 14, memory: 10 },
+      { from: 15, to: 19, memory: 7 },
+      { from: 20, to: 27, memory: 8 },
+      { from: 28, to: 34, memory: 4 },
+      { from: 35, to: 40, memory: 5 },
+      { from: 41, to: 44, memory: 9 },
+      { from: 45, to: 50, memory: 6 },
+      { from: 51, to: 58, memory: 10 },
+      { from: 59, to: 59, memory: 5 },
+      { from: 60, to: 62, memory: 3 },
+      { from: 63, to: 63, memory: 0 }
+    ];
+    const timeAnchors = [
+      { line: 0, time: 0 },
+      { line: 3, time: 15 },
+      { line: 4, time: 27 },
+      { line: 6, time: 41 },
+      { line: 10, time: 68 },
+      { line: 15, time: 98 },
+      { line: 20, time: 127 },
+      { line: 28, time: 170 },
+      { line: 35, time: 205 },
+      { line: 41, time: 234 },
+      { line: 45, time: 257 },
+      { line: 51, time: 294 },
+      { line: 59, time: 322 },
+      { line: 60, time: 330 },
+      { line: 61, time: 337 },
+      { line: 62, time: 342 },
+      { line: 63, time: 346 },
+      { line: 64, time: 351 }
+    ];
+
+    function desiredMusic(progress) {
+      return progress < 0.58 ? musicOne : musicTwo;
+    }
+
+    function switchMusic(progress) {
+      if (!isPlaying) return;
+      const nextMusic = desiredMusic(progress);
+      if (activeMusic === nextMusic && !nextMusic.paused) return;
+      [musicOne, musicTwo].forEach((track) => {
+        if (track !== nextMusic) track.pause();
+      });
+      activeMusic = nextMusic;
+      activeMusic.play().catch(() => {});
+    }
+
+    function stopMusic() {
+      [musicOne, musicTwo].forEach((track) => track.pause());
+    }
+
+    function updateVoiceLines(currentLine) {
+      voiceLines.forEach(lineEl => {
+        const localLine = Number(lineEl.dataset.line);
+        lineEl.classList.remove("is-now", "is-past", "is-gone");
+        if (localLine === currentLine) lineEl.classList.add("is-now");
+        if (localLine === currentLine - 1) lineEl.classList.add("is-past");
+        if (localLine < currentLine - 1) lineEl.classList.add("is-gone");
+      });
+    }
+
+    function timelineDuration() {
+      return Number.isFinite(narrationAudio.duration) && narrationAudio.duration > 0
+        ? narrationAudio.duration
+        : fallbackDuration;
+    }
+
+    function timelineElapsed() {
+      if (Number.isFinite(narrationAudio.duration) && narrationAudio.duration > 0) {
+        return narrationAudio.currentTime;
+      }
+      if (isPlaying) return (performance.now() - startedAt) / 1000;
+      return pausedAt;
+    }
+
+    function lineWeight(line) {
+      const words = line.split(/\s+/).filter(Boolean).length;
+      const commaPauses = (line.match(/[,:;]/g) || []).length * 0.5;
+      const sentencePause = /[.!?]$/.test(line) ? 0.9 : 0;
+      return 1.2 + words * 0.54 + commaPauses + sentencePause;
+    }
+
+    function lineStartTimes(duration) {
+      const starts = Array(lineCount).fill(Number.POSITIVE_INFINITY);
+      const scale = duration / fallbackDuration;
+      for (let anchorIndex = 0; anchorIndex < timeAnchors.length - 1; anchorIndex += 1) {
+        const current = timeAnchors[anchorIndex];
+        const next = timeAnchors[anchorIndex + 1];
+        const from = current.line;
+        const to = Math.min(next.line, lineCount);
+        const start = current.time * scale;
+        const end = next.time * scale;
+        const segmentLines = fullNarration.slice(from, to);
+        const weights = segmentLines.map(lineWeight);
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+        let cursor = start;
+        for (let index = from; index < to; index += 1) {
+          starts[index] = cursor;
+          cursor += ((end - start) * weights[index - from]) / totalWeight;
+        }
+      }
+      return starts;
+    }
+
+    function lineIndexFromElapsed(elapsed, duration) {
+      const starts = lineStartTimes(duration);
+      let current = 0;
+      for (let index = 0; index < starts.length; index += 1) {
+        if (elapsed >= starts[index]) current = index;
+      }
+      return Math.min(lineCount - 1, current);
+    }
+
+    function memoryIndexFromLine(lineIndex) {
+      const cue = photoCues.find((item) => lineIndex >= item.from && lineIndex <= item.to);
+      return cue ? cue.memory : 0;
+    }
+
+    function syncedTextElapsed(elapsed, duration) {
+      return Math.max(0, Math.min(duration - 0.01, elapsed * textSyncSpeed + textSyncLead));
+    }
+
+    window.__memoryTitleFromLine = (lineIndex) => memories[memoryIndexFromLine(lineIndex)].title;
+    window.__timelineDebug = (elapsed, duration = timelineDuration()) => {
+      const syncedElapsed = syncedTextElapsed(elapsed, duration);
+      const currentLine = lineIndexFromElapsed(syncedElapsed, duration);
+      const currentMemory = memories[memoryIndexFromLine(currentLine)];
+      return {
+        elapsed,
+        syncedElapsed,
+        line: currentLine,
+        text: fullNarration[currentLine],
+        photo: currentMemory?.title
+      };
+    };
+
+    function updatePresentation() {
+      const duration = timelineDuration();
+      const elapsed = Math.min(timelineElapsed(), duration - 0.01);
+      const progress = Math.max(0, Math.min(0.999, elapsed / duration));
+      const syncedElapsed = syncedTextElapsed(elapsed, duration);
+      const currentLine = lineIndexFromElapsed(syncedElapsed, duration);
+      const index = memoryIndexFromLine(currentLine);
+      const memory = memories[index];
+      document.querySelector(".timeline")?.style.setProperty("--progress", progress.toFixed(4));
+      if (activeIndex !== index) {
+        cards.forEach((card, cardIndex) => card.classList.toggle("is-active", cardIndex === index));
+        captionTitle.textContent = memory.title;
+        captionText.textContent = memory.text;
+        activeIndex = index;
+        lineIndex = -1;
+      }
+      if (lineIndex !== currentLine) {
+        updateVoiceLines(currentLine);
+        lineIndex = currentLine;
+      }
+      const finaleVisible = currentLine >= 63;
+      document.querySelector("#finale")?.classList.toggle("is-visible", finaleVisible);
+      switchMusic(progress);
+      if (isPlaying && elapsed >= duration - 0.05) {
+        isPlaying = false;
+        pausedAt = 0;
+        stopMusic();
+        audioControl.classList.remove("is-speaking");
+        audioControl.textContent = "Reiniciar apresentação";
+      }
+      requestAnimationFrame(updatePresentation);
+    }
+
+    updatePresentation();
+
+    audioControl.addEventListener("click", () => {
+      isPlaying = !isPlaying;
+      audioControl.classList.toggle("is-speaking", isPlaying);
+      audioControl.textContent = isPlaying ? "Pausar apresentação" : "Continuar apresentação";
+      if (isPlaying) {
+        if (narrationAudio.ended || pausedAt >= timelineDuration() - 0.1) {
+          narrationAudio.currentTime = 0;
+          pausedAt = 0;
+          activeIndex = -1;
+          lineIndex = -1;
+        }
+        startedAt = performance.now() - (pausedAt * 1000);
+        switchMusic(Math.max(0, Math.min(0.999, timelineElapsed() / timelineDuration())));
+        narrationAudio.play().catch(() => {
+          isPlaying = false;
+          audioControl.classList.remove("is-speaking");
+          audioControl.textContent = "Iniciar apresentação";
+          stopMusic();
+        });
+      } else {
+        pausedAt = timelineElapsed();
+        narrationAudio.pause();
+        stopMusic();
+      }
+    });
+
+    const particles = document.querySelector("#particles");
+    for (let i = 0; i < 42; i += 1) {
+      const particle = document.createElement("span");
+      particle.className = "particle";
+      particle.style.setProperty("--x", `${Math.random() * 100}%`);
+      particle.style.setProperty("--s", `${Math.random() * 5 + 2}px`);
+      particle.style.setProperty("--d", `${Math.random() * 10 + 11}s`);
+      particle.style.setProperty("--delay", `${Math.random() * -18}s`);
+      particles.appendChild(particle);
+    }
+  </script>
+</body>
+</html>
